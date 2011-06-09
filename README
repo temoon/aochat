@@ -2,9 +2,28 @@
 AO CHAT
 ============================================================
 
+
 Python implementation of Anarchy Online Chat protocol.
 
--- 
-Tema Novikov,
-temoon@temoon.pp.ru
 
+TABLE OF CONTENTS:
+==================
+I.  Installation
+II. Author
+
+
+I. INSTALLATION
+===============
+Please, run these commands in command line to install AOChat python package:
+~$ cd <path/to/aochat/sources>
+~$ python setup.py build
+~$ sudo python setup.py install
+
+
+II. AUTHOR
+==========
+Tema Novikov
+E-mail: temoon@temoon.pp.ru
+
+Please, send me response about this implementation of Anarchy Online chat
+protocol.

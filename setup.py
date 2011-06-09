@@ -12,18 +12,18 @@ from distutils.core import setup
 
 setup(
     name         = "aochat",
-    version      = "0.0.1.1pa",
+    version      = "0.0.2.2pa",
     description  = "Python implementation of Anarchy Online chat protocol.",
     author       = "Tema Novikov",
     author_email = "temoon@temoon.pp.ru",
     download_url = "https://github.com/temoon/aochat",
     
-    py_modules = [
+    packages = [
         "AOChat",
     ],
     
     package_dir = {
-        "": "lib",
+        "AOChat": "lib/AOChat",
     },
     
     classifiers = (
