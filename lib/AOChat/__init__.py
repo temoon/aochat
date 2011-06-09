@@ -62,7 +62,6 @@ class Chat(object):
         self.username = username
         self.password = password
         self.dimension = dimension
-        self.character = None
         
         # Initialize connection
         try:
@@ -83,6 +82,9 @@ class Chat(object):
             p_login_charlist = self.send_packet(AOCP_LOGIN_RESPONSE, (username, login_key,), AOSP_LOGIN_CHARLIST)
         except UnexpectedPacketError:
             raise ProtocolError("Authentication failed or no characters found.")
+        
+        self.character = None
+        self.characters = p_login_charlist.characters
     
     def wait_packet(self, expect):
         """
