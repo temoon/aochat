@@ -8,7 +8,6 @@ Python implementation of Anarchy Online chat protocol.
 
 
 import socket
-import time
 import struct
 
 
@@ -16,127 +15,127 @@ from AOChat.LoginKey import generate_login_key
 
 from AOChat.Packets import (
     # Server packets
-    AOSP_LOGIN_SEED,        AOSP_LOGIN_OK,         AOSP_LOGIN_ERROR,
-    AOSP_LOGIN_CHARLIST,    AOSP_CLIENT_UNKNOWN,   AOSP_CLIENT_NAME,
-    AOSP_LOOKUP_RESULT,     AOSP_MSG_PRIVATE,      AOSP_MSG_VICINITY,
-    AOSP_MSG_ANONVICINITY,  AOSP_MSG_SYSTEM,       AOSP_MESSAGE_SYSTEM,
-    AOSP_BUDDY_STATUS,      AOSP_BUDDY_REMOVED,    AOSP_PRIVGRP_INVITE,
-    AOSP_PRIVGRP_KICK,      AOSP_PRIVGRP_JOIN,     AOSP_PRIVGRP_PART,
-    AOSP_PRIVGRP_KICKALL,   AOSP_PRIVGRP_CLIJOIN,  AOSP_PRIVGRP_CLIPART,
-    AOSP_PRIVGRP_MSG,       AOSP_GROUP_JOIN,       AOSP_GROUP_PART,
-    AOSP_GROUP_MSG,         AOSP_PONG,             AOSP_FORWARD,
-    AOSP_AMD_MUX_INFO,
+    AOSP_LOGIN_SEED, AOSP_LOGIN_OK, AOSP_LOGIN_ERROR, AOSP_LOGIN_CHARACTER_LIST,
     
     # Client packets
-    AOCP_LOGIN_RESPONSE,    AOCP_LOGIN_SELCHAR,    AOCP_NAME_LOOKUP,
-    AOCP_MSG_PRIVATE,       AOCP_BUDDY_ADD,        AOCP_BUDDY_REMOVE,
-    AOCP_ONLINE_STATUS,     AOCP_GROUP_DATASET,    AOCP_GROUP_MESSAGE,
-    AOCP_GROUP_CLIMODE,     AOCP_CLIMODE_GET,      AOCP_CLIMODE_SET,
-    AOCP_PING,              AOCP_CHAT_COMMAND,
+    AOCP_LOGIN_REQUEST, AOCP_LOGIN_SELECT_CHARACTER,
 )
 
 from AOChat.Dimensions import Dimension
 from AOChat.Characters import Character
 
 
-
 class ChatError(Exception):
     pass
 
-class ProtocolError(ChatError):
-    pass
-
-class NetworkError(ChatError):
-    pass
-
-class UnexpectedPacketError(NetworkError):
+class UnexpectedPacket(ChatError):
     pass
 
 
 class Chat(object):
     """
-    Core Anarchy Online chat protocol implementation.
+    Anarchy Online chat protocol implementation.
     """
     
-    def __init__(self, username, password, dimension, timeout = 10):
-        self.username = username
-        self.password = password
-        self.dimension = dimension
-        
+    def __init__(self, username, password, dimension, character = None, timeout = 10):
         # Initialize connection
         try:
-            self.socket = socket.create_connection((self.dimension.host, self.dimension.port,), timeout)
-            self.ping_time = time.time()
+            self.socket = socket.create_connection((dimension.host, dimension.port,), timeout)
         except socket.error, error:
-            raise NetworkError("Connection failed: %s" % error)
+            raise ChatError("Socket error %d: %s" % tuple(error))
         
+        # Wait server key and generate login key
         try:
-            p_login_seed = self.wait_packet(AOSP_LOGIN_SEED)
-        except UnexpectedPacketError:
-            raise ProtocolError("Invalid greeting packet.")
+            server_key = self.wait_packet(AOSP_LOGIN_SEED).server_key
+            login_key  = generate_login_key(server_key, username, password)
+        except UnexpectedPacket, (type, packet):
+            raise ChatError("Invalid greeting packet: %s" % type)
         
-        # Athenticate
-        login_key = generate_login_key(p_login_seed.seed, self.username, self.password)
-        
+        # Authenticate
         try:
-            p_login_charlist = self.send_packet(AOCP_LOGIN_RESPONSE, (username, login_key,), AOSP_LOGIN_CHARLIST)
-        except UnexpectedPacketError:
-            raise ProtocolError("Authentication failed or no characters found.")
+            self.character  = None
+            self.characters = self.send_packet(AOCP_LOGIN_REQUEST(0, username, login_key), AOSP_LOGIN_CHARACTER_LIST, AOSP_LOGIN_ERROR).characters
+        except UnexpectedPacket, (type, packet):
+            raise ChatError(packet.message)
         
-        self.character = None
-        self.characters = p_login_charlist.characters
+        # Login
+        if character:
+            self.login(character)
     
-    def wait_packet(self, expect):
+    def __read_socket(self, bytes):
+        data = ""
+        
+        while bytes > 0:
+            try:
+                chunk = self.socket.recv(bytes)
+            except socket.error, error:
+                raise ChatError("Socket error %d: %s" % tuple(error))
+            except socket.timeout:
+                raise ChatError("Connection timed out.")
+            
+            if chunk == "":
+                raise ChatError("Connection broken.")
+            
+            bytes = bytes - len(chunk)
+            data = data + chunk
+        
+        return data
+    
+    def __write_socket(self, data):
+        bytes = len(data)
+        
+        while bytes > 0:
+            try:
+                sent = self.socket.send(data)
+            except socket.error, error:
+                raise ChatError("Socket error %d: %s" % tuple(error))
+            except socket.timeout:
+                raise ChatError("Connection timed out.")
+            
+            if sent == 0:
+                raise ChatError("Connection broken.")
+            
+            data = data[sent:]
+            bytes = bytes - sent
+    
+    def wait_packet(self, expect, error = None):
         """
         Wait packet from server.
         """
         
-        def read_from_socket(bytes):
-            data = ""
-            
-            while bytes > 0:
-                buffer = self.socket.recv(bytes)
-                data = data + buffer
-                bytes = bytes - len(buffer)
-            
-            return data
-        
-        # Read data from socket
-        try:
-            head = read_from_socket(4)
-            type, length = struct.unpack(">2H", head)
-            data = read_from_socket(length)
-        except socket.timeout:
-            raise NetworkError("Connection timed out.")
+        # Read data from server
+        head = self.__read_socket(4)
+        type, length = struct.unpack(">2H", head)
+        data = self.__read_socket(length)
         
         # Check packet type
-        if expect.type != type:
-            raise UnexpectedPacket()
+        if type != expect.type:
+            if error and type == error.type:
+                # Make error packet
+                packet = error(data)
+                
+                raise UnexpectedPacket(type, packet)
+            else:
+                raise ChatError("Unexpected error.")
         
-        # Make packet
+        # Make expected packet
         packet = expect(data)
         
         return packet
     
-    def send_packet(self, send, args, expect = None):
+    def send_packet(self, packet, expect = None, error = None):
         """
         Send packet to server.
         """
         
-        # Make packet
-        packet = send(*args)
+        # Pack
+        data = packet.pack()
         
-        # Make data
-        data = packet.pack(packet.args)
-        data = struct.pack(">2H", packet.type, len(data)) + data
-        
-        try:
-            self.socket.send(data)
-        except socket.timeout:
-            raise NetworkError("Connection timed out.")
+        # Send data to server
+        self.__write_socket(data)
         
         if expect:
-            return self.wait_packet(expect)
+            return self.wait_packet(expect, error)
     
     def login(self, character):
         """
@@ -144,17 +143,16 @@ class Chat(object):
         """
         
         # Lookup character
-        for exist_character in self.characters:
-            if character.id == exist_character.id:
-                break
-        else:
-            raise ProtocolError("No valid character to login.")
+        if character.id not in map(lambda char: char.id, self.characters):
+            raise ChatError("no valid characters to login.")
         
+        # Login with selected character
         try:
-            self.send_packet(AOCP_LOGIN_SELCHAR, (character.id,), AOSP_LOGIN_OK)
-        except UnexpectedPacketError:
-            raise ProtocolError("Login failed.")
+            self.send_packet(AOCP_LOGIN_SELECT_CHARACTER(character.id), AOSP_LOGIN_OK, AOSP_LOGIN_ERROR)
+        except UnexpectedPacket, (type, packet):
+            raise ChatError(packet.message)
         
+        # Set current character
         self.character = character
     
     def logout(self):
@@ -162,4 +160,7 @@ class Chat(object):
         Logout from chat.
         """
         
+        # TODO: ...
+        
+        # Unset current character
         self.character = None

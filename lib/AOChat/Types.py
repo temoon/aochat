@@ -1,210 +1,204 @@
 # -*- coding: utf-8 -*-
 
 
-
 """
 Anarchy Online chat protocol: data types.
 """
 
 
-
 import struct
 
 
-
-### EXCEPTIONS #################################################################
-
-
-class AOTypeError(TypeError):
-    pass
-
-class IntegersTypeError(AOTypeError):
-    pass
-
-class IntegerTypeError(IntegersTypeError):
-    pass
-
-class StringsTypeError(AOTypeError):
-    pass
-
-class StringTypeError(StringsTypeError):
-    pass
-
-class GroupIDTypeError(AOTypeError):
-    pass
-
-
-
-### DATA TYPES #################################################################
-
-
 class Integer(long):
-    """
-    Anarchy Online chat protocol: 32-bit unsigned integer data type.
-    """
     
-    @staticmethod
-    def pack(integer):
+    def __init__(self, x = 0L, base = 10):
         """
-        Pack Integer to binary data.
+        Unsigned integer.
         """
         
-        try:
-            data = struct.pack(">I", integer)
-        except struct.error, error:
-            raise IntegerTypeError(error, integer)
+        long.__init__(self, x, base)
         
-        return data
+        if self > 0xFFFFFFFFL:
+            raise ValueError("out of range")
     
-    @staticmethod
-    def unpack(data):
+    def pack(self):
         """
-        Unpack first Integer from binary data.
+        Pack to binary data.
         """
         
-        try:
-            integer, data = Integer(struct.unpack(">I", data[:4])[0]), data[4:]
-        except struct.error, error:
-            raise IntegerTypeError(error, data)
-        
-        return integer, data
-
-
-class Integers(list):
-    """
-    Anarchy Online chat protocol: 16-bit length array of Integer data type.
-    """
+        return struct.pack(">I", self)
     
-    @staticmethod
-    def pack(integers):
+    @classmethod
+    def unpack(Class, data):
         """
-        Pack Integers (list of Integer) to binary data.
-        """
-        
-        try:
-            data = struct.pack(">H", len(integers)) + "".join(map(lambda item: Integer.pack(item), integers))
-        except struct.error, error:
-            raise IntegersTypeError(error, integers)
-        
-        return data
-    
-    @staticmethod
-    def unpack(data):
-        """
-        Unpack first Integers (list of Integer) from binary data.
+        Unpack from binary data.
         """
         
-        integers = Integers()
+        if len(data) < 4:
+            raise ValueError("too short data")
         
-        try:
-            count, data = struct.unpack(">H", data[:2])[0], data[2:]
-        except struct.error, error:
-            raise IntegersTypeError(error, data)
-        
-        for i in range(count):
-            integer, data = Integer.unpack(data)
-            integers.append(integer)
-        
-        return integers, data
+        return Class(struct.unpack(">I", data[:4])[0]), data[4:]
 
 
 class String(str):
-    """
-    Anarchy Online chat protocol: 16-bit length string data type.
-    """
     
-    @staticmethod
-    def pack(string):
+    def __init__(self, x = ""):
         """
-        Pack String to binary data.
+        String.
         """
         
-        try:
-            data = struct.pack(">H", len(string)) + string
-        except struct.error, error:
-            raise StringTypeError(error, string)
+        str.__init__(self, x)
         
-        return data
+        if len(self) > 0xFFFF:
+            raise ValueError("too long string")
     
-    @staticmethod
-    def unpack(data):
+    def pack(self):
         """
-        Unpack first String from binary data.
+        Pack to binary data.
         """
         
-        try:
-            length, data = struct.unpack(">H", data[:2])[0], data[2:]
-        except struct.error, error:
-            raise StringTypeError(error, data)
+        return struct.pack(">H", len(self)) + self
+    
+    @classmethod
+    def unpack(Class, data):
+        """
+        Unpack from binary data.
+        """
         
-        return data[:length], data[length:]
+        if len(data) < 2:
+            raise ValueError("too short data")
+        
+        length, data = struct.unpack(">H", data[:2])[0], data[2:]
+        
+        return Class(data[:length]), data[length:]
 
 
-class Strings(list):
-    """
-    Anarchy Online chat protocol: 16-bit length array of String data type.
-    """
+class ChannelID(long):
+    
+    def __init__(self, x = 0L, base = 10):
+        """
+        Channel ID.
+        """
+        
+        long.__init__(self, x, base)
+        
+        if self > 0xFFFFFFFFFFL:
+            raise ValueError("out of range")
+    
+    def pack(self):
+        """
+        Pack to binary data.
+        """
+        
+        return struct.pack(">BI", self >> 32, self & 0xFFFFFFFFL)
+    
+    @classmethod
+    def unpack(Class, data):
+        """
+        Unpack from binary data.
+        """
+        
+        if len(data) < 5:
+            raise ValueError("too short data")
+        
+        a, b = struct.unpack(">BI", data[:5])
+        
+        return Class((a << 32) + b), data[5:]
+
+
+class _Tuple(tuple):
+    
+    def __new__(Class, Type, sequence = ()):
+        """
+        Constructor of tuple of <Type>s.
+        """
+        
+        return tuple.__new__(Class, map(Type, sequence))
+    
+    def __init__(self, Type, sequence = ()):
+        """
+        Tuple of <Type>s.
+        """
+        
+        if len(self) > 0xFFFF:
+            raise ValueError("too long sequence")
+    
+    def pack(self):
+        """
+        Pack to binary data.
+        """
+        
+        return struct.pack(">H", len(self)) + "".join(map(lambda item: item.pack(), self))
     
     @staticmethod
-    def pack(strings):
+    def unpack(Type, data):
         """
-        Pack Strings (list of String) to binary data.
-        """
-        
-        try:
-            data = struct.pack(">H", len(strings)) + "".join(map(lambda item: String.pack(item), strings))
-        except struct.error, error:
-            raise StringsTypeError(error, strings)
-        
-        return data
-    
-    @staticmethod
-    def unpack(data):
-        """
-        Unpack first Strings (list of String) from binary data.
+        Unpack from binary data.
         """
         
-        strings = Strings()
+        if len(data) < 2:
+            raise ValueError("too short data")
         
-        try:
-            count, data = struct.unpack(">H", data[:2])[0], data[2:]
-        except struct.error, error:
-            raise StringsTypeError(error, data)
+        count, data = struct.unpack(">H", data[:2])[0], data[2:]
+        
+        items = []
         
         for i in range(count):
-            string, data = String.unpack(data)
-            strings.append(string)
+            item, data = Type.unpack(data)
+            items.append(item)
         
-        return strings, data
+        return items, data
 
 
-class GroupID(long):
-    """
-    Anarchy Online chat protocol: 40-bit binary data type.
-    """
+class IntegerTuple(_Tuple):
     
-    @staticmethod
-    def pack(id):
+    def __new__(Class, sequence = ()):
         """
-        Pack GroupID to binary data.
+        Constructor of tuple of <Integer>s.
         """
         
-        try:
-            data = struct.pack(">BI", id >> 32, id & 0xffffffffL)
-        except struct.error, error:
-            raise GroupIDTypeError(error, id)
-        
-        return data
+        return _Tuple.__new__(Class, Integer, sequence)
     
-    @staticmethod
-    def unpack(data):
+    def __init__(self, sequence = ()):
         """
-        Unpack first GroupID from binary data.
+        Tuple of <Integer>s.
         """
         
-        try:
-            a, b = struct.unpack(">BI", data[:5])
-        except struct.error, error:
-            raise GroupIDTypeError(error, data)
+        _Tuple.__init__(self, Integer, sequence)
+    
+    @classmethod
+    def unpack(Class, data):
+        """
+        Unpack from binary data.
+        """
         
-        return a << 32 + b, data[5:]
+        items, data = _Tuple.unpack(Integer, data)
+        
+        return Class(items), data
+
+
+class StringTuple(_Tuple):
+    
+    def __new__(Class, sequence = ()):
+        """
+        Constructor of tuple of <String>s.
+        """
+        
+        return _Tuple.__new__(Class, String, sequence)
+    
+    def __init__(self, sequence = ()):
+        """
+        Tuple of <String>s.
+        """
+        
+        _Tuple.__init__(self, String, sequence)
+    
+    @classmethod
+    def unpack(Class, data):
+        """
+        Unpack from binary data.
+        """
+        
+        items, data = _Tuple.unpack(String, data)
+        
+        return Class(items), data
