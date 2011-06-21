@@ -8,8 +8,9 @@ Python implementation of Anarchy Online Chat protocol.
 
 TABLE OF CONTENTS:
 ==================
-I.  Installation
-II. Author
+I.  Installation.
+II. Anarhy Online chat protocol.
+III. About author.
 
 
 I. INSTALLATION
@@ -20,8 +21,32 @@ Please, run these commands in command line to install AOChat python package:
 ~$ sudo python setup.py install
 
 
-II. AUTHOR
-==========
+II. ANARCHY ONLINE CHAT PROTOCOL
+================================
+
+1. DATA TYPES
+-------------
+Integer = [ 4 bytes ]
+String = [ 2 bytes of length of string ] + [ string ]
+ChannelID = [ 5 bytes ]
+IntegerTuple = [ 2 bytes of count of items ] + [ 1st Integer ] + [ 2nd Integer ] + ...
+StringTuple = [ 2 bytes of count of items ] + [ 1st String ] + [ 2nd String ] + ...
+
+2. PACKETS: GENERAL
+-------------------
+packet = [ 2 bytes of type ] + [ 2 bytes of length of data ] + [ data ]
+
+3. CLIENT -> SERVER PACKETS
+---------------------------
+TODO
+
+4. SERVER -> CLIENT PACKETS
+---------------------------
+TODO
+
+
+III. ABOUT AUTHOR
+=================
 Tema Novikov
 E-mail: temoon@temoon.pp.ru
 
