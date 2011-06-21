@@ -12,7 +12,7 @@ from distutils.core import setup
 
 setup(
     name         = "aochat",
-    version      = "0.0.3.4pa",
+    version      = "0.0.4.4pa",
     description  = "Python implementation of Anarchy Online chat protocol.",
     author       = "Tema Novikov",
     author_email = "temoon@temoon.pp.ru",

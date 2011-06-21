@@ -12,6 +12,10 @@ from AOChat.Types import Integer, String, IntegerTuple, StringTuple, ChannelID
 from AOChat.Characters import Character
 
 
+
+### BASE PROTECTED CLASSES #####################################################
+
+
 class _Packet(tuple):
     
     def __new__(Class, type, args):
@@ -79,6 +83,10 @@ class _ClientPacket(_Packet):
         """
         
         _Packet.__init__(self, type, args)
+
+
+
+### PACKETS FROM SERVER ########################################################
 
 
 class AOSP_LOGIN_SEED(_ServerPacket):
@@ -155,7 +163,7 @@ class AOSP_LOGIN_CHARACTER_LIST(_ServerPacket):
     
     def __init__(self, data):
         """
-        LOGIN_CHARACTER_LIST packet (characters of <Character>).
+        LOGIN_CHARACTER_LIST packet (characters of <Character>s, character_id of <Integer>s, character_name of <String>s, character_level of <Integer>s, character_online of <Integer>s).
         """
         
         _ServerPacket.__init__(self, AOSP_LOGIN_CHARACTER_LIST.type, map(type, self), data)
@@ -167,340 +175,430 @@ class AOSP_LOGIN_CHARACTER_LIST(_ServerPacket):
             characters.append(character)
         
         self.characters = tuple(characters)
+        
+        self.character_id = self[0]
+        self.character_name = self[1]
+        self.character_level = self[2]
+        self.character_online = self[3]
 
 
-#class AOSP_CLIENT_UNKNOWN(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: CLIENT_UNKNOWN packet.
-#    """
-#    
-#    type = 10
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer,))
-#        
-#        self.user_id = self.args[0]
-#
-#
-#class AOSP_CLIENT_NAME(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: CLIENT_NAME packet.
-#    """
-#    
-#    type = 20
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer, String,))
-#        
-#        self.user_id = self.args[0]
-#        self.name = self.args[1]
-#
-#
-#class AOSP_LOOKUP_RESULT(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: LOOKUP_RESULT packet.
-#    """
-#    
-#    type = 21
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer, String,))
-#        
-#        self.user_id = self.args[0]
-#        self.name = self.args[1]
-#
-#
-#class AOSP_MSG_PRIVATE(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: MSG_PRIVATE packet.
-#    """
-#    
-#    type = 30
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer, String, String,))
-#        
-#        self.user_id = self.args[0]
-#        self.text = self.args[1]
-#        self.blob = self.args[2]
-#
-#
-#class AOSP_MSG_VICINITY(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: MSG_VICINITY packet.
-#    """
-#    
-#    type = 34
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer, String, String,))
-#        
-#        self.user_id = self.args[0]
-#        self.text = self.args[1]
-#        self.blob = self.args[2]
-#
-#
-#class AOSP_MSG_ANONVICINITY(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: MSG_ANONVICINITY packet.
-#    """
-#    
-#    type = 35
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (String, String, String,))
-#        
-#        self.user = self.args[0]
-#        self.text = self.args[1]
-#        self.blob = self.args[2]
-#
-#
-#class AOSP_MSG_SYSTEM(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: MSG_SYSTEM packet.
-#    """
-#    
-#    type = 36
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (String,))
-#        
-#        self.text = self.args[0]
-#
-#
-#class AOSP_MESSAGE_SYSTEM(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: MESSAGE_SYSTEM packet.
-#    """
-#    
-#    type = 37
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer, Integer, Integer, String,))
-#        
-#        self.client_id = self.args[0]
-#        self.window_id = self.args[1]
-#        self.message_id = self.args[2]
-#        self.message_args = self.args[3]
-#
-#
-#class AOSP_BUDDY_STATUS(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: BUDDY_STATUS packet.
-#    """
-#    
-#    type = 40
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer, Integer, String,))
-#        
-#        self.user_id = self.args[0]
-#        self.online = self.args[1]
-#        self.status = self.args[2]
-#
-#
-#class AOSP_BUDDY_REMOVED(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: BUDDY_REMOVED packet.
-#    """
-#    
-#    type = 41
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer,))
-#        
-#        self.user_id = self.args[0]
-#
-#
-#class AOSP_PRIVGRP_INVITE(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: PRIVGRP_INVITE packet.
-#    """
-#    
-#    type = 50
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer,))
-#        
-#        self.user_id = self.args[0]
-#
-#
-#class AOSP_PRIVGRP_KICK(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: PRIVGRP_KICK packet.
-#    """
-#    
-#    type = 51
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer,))
-#        
-#        self.user_id = self.args[0]
-#
-#
-#class AOSP_PRIVGRP_JOIN(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: PRIVGRP_JOIN packet.
-#    """
-#    
-#    type = 52
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer,))
-#        
-#        self.user_id = self.args[0]
-#
-#
-#class AOSP_PRIVGRP_PART(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: PRIVGRP_PART packet.
-#    """
-#    
-#    type = 53
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer,))
-#        
-#        self.user_id = self.args[0]
-#
-#
-#class AOSP_PRIVGRP_KICKALL(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: PRIVGRP_KICKALL packet.
-#    """
-#    
-#    type = 54
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, ())
-#
-#
-#class AOSP_PRIVGRP_CLIJOIN(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: PRIVGRP_CLIJOIN packet.
-#    """
-#    
-#    type = 55
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer, Integer,))
-#        
-#        self.user_a_id = self.args[0]
-#        self.user_b_id = self.args[1]
-#
-#
-#class AOSP_PRIVGRP_CLIPART(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: PRIVGRP_CLIPART packet.
-#    """
-#    
-#    type = 56
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer, Integer,))
-#        
-#        self.user_a_id = self.args[0]
-#        self.user_b_id = self.args[1]
-#
-#
-#class AOSP_PRIVGRP_MSG(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: PRIVGRP_MSG packet.
-#    """
-#    
-#    type = 57
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer, Integer, String, String,))
-#        
-#        self.user_a_id = self.args[0]
-#        self.user_b_id = self.args[1]
-#        self.text = self.args[2]
-#        self.blob = self.args[3]
-#
-#
-#class AOSP_GROUP_JOIN(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: GROUP_JOIN packet.
-#    """
-#    
-#    type = 60
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (GroupID, String, Integer, String,))
-#        
-#        self.group_id = self.args[0]
-#        self.group_name = self.args[1]
-#        self.mute = self.args[2]
-#        self.status = self.args[3]
-#
-#
-#class AOSP_GROUP_PART(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: GROUP_PART packet.
-#    """
-#    
-#    type = 61
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (GroupID,))
-#        
-#        self.group_id = self.args[0]
-#
-#
-#class AOSP_GROUP_MSG(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: GROUP_MSG packet.
-#    """
-#    
-#    type = 65
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (GroupID, Integer, String, String,))
-#        
-#        self.group_id = self.args[0]
-#        self.user_id = self.args[1]
-#        self.text = self.args[2]
-#        self.blob = self.args[3]
-#
-#
-#class AOSP_PONG(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: PONG packet.
-#    """
-#    
-#    type = 100
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (String,))
-#        
-#        self.string = self.args[0]
-#
-#
-#class AOSP_FORWARD(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: FORWARD packet.
-#    """
-#    
-#    type = 110
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integer, String,))
-#        
-#        # TODO: ...
-#
-#
-#class AOSP_AMD_MUX_INFO(ServerPacket):
-#    """
-#    Anarchy Online chat protocol: AMD_MUX_INFO packet.
-#    """
-#    
-#    type = 1100
-#    
-#    def __init__(self, data):
-#        ServerPacket.__init__(self, data, (Integers, Integers, Integers,))
-#        
-#        # TODO: ...
+class AOSP_CHARACTER_UNKNOWN(_ServerPacket):
+    
+    type = 10
+    
+    def __new__(Class, data):
+        """
+        Constructor of CHARACTER_UNKNOWN packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_CHARACTER_UNKNOWN.type, (Integer,), data)
+    
+    def __init__(self, data):
+        """
+        CHARACTER_UNKNOWN packet (character_id of <Integer>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_CHARACTER_UNKNOWN.type, map(type, self), data)
+        
+        self.character_id = self[0]
+
+
+class AOSP_CHARACTER_NAME(_ServerPacket):
+    
+    type = 20
+    
+    def __new__(Class, data):
+        """
+        Constructor of CHARACTER_NAME packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_CHARACTER_NAME.type, (Integer, String,), data)
+    
+    def __init__(self, data):
+        """
+        CHARACTER_NAME packet (character_id of <Integer>, character_name of <String>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_CHARACTER_NAME.type, map(type, self), data)
+        
+        self.character_id = self[0]
+        self.character_name = self[1]
+
+
+class AOSP_CHARACTER_LOOKUP_RESULT(_ServerPacket):
+    
+    type = 21
+    
+    def __new__(Class, data):
+        """
+        Constructor of CHARACTER_LOOKUP_RESULT packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_CHARACTER_LOOKUP_RESULT.type, (Integer, String,), data)
+    
+    def __init__(self, data):
+        """
+        CHARACTER_LOOKUP_RESULT packet (character_id of <Integer>, character_name of <String>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_CHARACTER_LOOKUP_RESULT.type, map(type, self), data)
+        
+        self.character_id = self[0]
+        self.character_name = self[1]
+
+
+class AOSP_PRIVATE_MESSAGE(_ServerPacket):
+    
+    type = 30
+    
+    def __new__(Class, data):
+        """
+        Constructor of PRIVATE_MESSAGE packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_PRIVATE_MESSAGE.type, (Integer, String, String,), data)
+    
+    def __init__(self, data):
+        """
+        PRIVATE_MESSAGE packet (character_id of <Integer>, message of <String>, blob of <String>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_PRIVATE_MESSAGE.type, map(type, self), data)
+        
+        self.character_id = self[0]
+        self.message = self[1]
+        self.blob = self[2]
+
+
+class AOSP_VICINITY_MESSAGE(_ServerPacket):
+    
+    type = 34
+    
+    def __new__(Class, data):
+        """
+        Constructor of VICINITY_MESSAGE packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_VICINITY_MESSAGE.type, (Integer, String, String,), data)
+    
+    def __init__(self, data):
+        """
+        VICINITY_MESSAGE packet (character_id of <Integer>, message of <String>, blob of <String>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_VICINITY_MESSAGE.type, map(type, self), data)
+        
+        self.character_id = self[0]
+        self.message = self[1]
+        self.blob = self[2]
+
+
+class AOSP_BROADCAST_MESSAGE(_ServerPacket):
+    
+    type = 35
+    
+    def __new__(Class, data):
+        """
+        Constructor of BROADCAST_MESSAGE packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_BROADCAST_MESSAGE.type, (Integer, String, String,), data)
+    
+    def __init__(self, data):
+        """
+        BROADCAST_MESSAGE packet (character_id of <Integer>, message of <String>, blob of <String>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_BROADCAST_MESSAGE.type, map(type, self), data)
+        
+        self.character_id = self[0]
+        self.message = self[1]
+        self.blob = self[2]
+
+
+class AOSP_SIMPLE_SYSTEM_MESSAGE(_ServerPacket):
+    
+    type = 36
+    
+    def __new__(Class, data):
+        """
+        Constructor of SIMPLE_SYSTEM_MESSAGE packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_SIMPLE_SYSTEM_MESSAGE.type, (String,), data)
+    
+    def __init__(self, data):
+        """
+        SIMPLE_SYSTEM_MESSAGE packet (message of <String>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_SIMPLE_SYSTEM_MESSAGE.type, map(type, self), data)
+        
+        self.message = self[0]
+
+
+class AOSP_SYSTEM_MESSAGE(_ServerPacket):
+    
+    type = 37
+    
+    def __new__(Class, data):
+        """
+        Constructor of SYSTEM_MESSAGE packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_SYSTEM_MESSAGE.type, (Integer, Integer, Integer, String,), data)
+    
+    def __init__(self, data):
+        """
+        SYSTEM_MESSAGE packet (client_id of <Integer>, window_id of <Integer>, message_id of <Integer>, message of <String>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_SYSTEM_MESSAGE.type, map(type, self), data)
+        
+        self.client_id = self[0]
+        self.window_id = self[1]
+        self.message_id = self[2]
+        self.message = self[3]
+
+
+class AOSP_FRIEND_UPDATE(_ServerPacket):
+    
+    type = 40
+    
+    def __new__(Class, data):
+        """
+        Constructor of FRIEND_UPDATE packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_FRIEND_UPDATE.type, (Integer, Integer, String,), data)
+    
+    def __init__(self, data):
+        """
+        FRIEND_UPDATE packet (character_id of <Integer>, online of <Integer>, flags of <String>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_FRIEND_UPDATE.type, map(type, self), data)
+        
+        self.character_id = self[0]
+        self.online = self[1]
+        self.flags = self[2]
+
+
+class AOSP_FRIEND_REMOVE(_ServerPacket):
+    
+    type = 41
+    
+    def __new__(Class, data):
+        """
+        Constructor of FRIEND_REMOVE packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_FRIEND_REMOVE.type, (Integer,), data)
+    
+    def __init__(self, data):
+        """
+        FRIEND_REMOVE packet (character_id of <Integer>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_FRIEND_REMOVE.type, map(type, self), data)
+        
+        self.character_id = self[0]
+
+
+class AOSP_PRIVATE_CHANNEL_INVITE(_ServerPacket):
+    
+    type = 50
+    
+    def __new__(Class, data):
+        """
+        Constructor of PRIVATE_CHANNEL_INVITE packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_PRIVATE_CHANNEL_INVITE.type, (Integer,), data)
+    
+    def __init__(self, data):
+        """
+        PRIVATE_CHANNEL_INVITE packet (character_id of <Integer>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_PRIVATE_CHANNEL_INVITE.type, map(type, self), data)
+        
+        self.character_id = self[0]
+
+
+class AOSP_PRIVATE_CHANNEL_KICK(_ServerPacket):
+    
+    type = 51
+    
+    def __new__(Class, data):
+        """
+        Constructor of PRIVATE_CHANNEL_KICK packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_PRIVATE_CHANNEL_KICK.type, (Integer,), data)
+    
+    def __init__(self, data):
+        """
+        PRIVATE_CHANNEL_KICK packet (character_id of <Integer>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_PRIVATE_CHANNEL_KICK.type, map(type, self), data)
+        
+        self.character_id = self[0]
+
+
+class AOSP_PRIVATE_CHANNEL_JOIN(_ServerPacket):
+    
+    type = 55
+    
+    def __new__(Class, data):
+        """
+        Constructor of PRIVATE_CHANNEL_JOIN packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_PRIVATE_CHANNEL_JOIN.type, (Integer, Integer,), data)
+    
+    def __init__(self, data):
+        """
+        PRIVATE_CHANNEL_JOIN packet (owner_character_id of <Integer>, character_id of <Integer>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_PRIVATE_CHANNEL_JOIN.type, map(type, self), data)
+        
+        self.owner_character_id = self[0]
+        self.character_id = self[1]
+
+
+class AOSP_PRIVATE_CHANNEL_LEAVE(_ServerPacket):
+    
+    type = 56
+    
+    def __new__(Class, data):
+        """
+        Constructor of PRIVATE_CHANNEL_LEAVE packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_PRIVATE_CHANNEL_LEAVE.type, (Integer, Integer,), data)
+    
+    def __init__(self, data):
+        """
+        PRIVATE_CHANNEL_LEAVE packet (owner_character_id of <Integer>, character_id of <Integer>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_PRIVATE_CHANNEL_LEAVE.type, map(type, self), data)
+        
+        self.owner_character_id = self[0]
+        self.character_id = self[1]
+
+
+class AOSP_PRIVATE_CHANNEL_MESSAGE(_ServerPacket):
+    
+    type = 51
+    
+    def __new__(Class, data):
+        """
+        Constructor of PRIVATE_CHANNEL_MESSAGE packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_PRIVATE_CHANNEL_MESSAGE.type, (Integer,), data)
+    
+    def __init__(self, data):
+        """
+        PRIVATE_CHANNEL_MESSAGE packet (character_id of <Integer>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_PRIVATE_CHANNEL_MESSAGE.type, map(type, self), data)
+        
+        self.character_id = self[0]
+
+
+class AOSP_CHANNEL_JOIN(_ServerPacket):
+    
+    type = 60
+    
+    def __new__(Class, data):
+        """
+        Constructor of CHANNEL_JOIN packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_CHANNEL_JOIN.type, (ChannelID, String, Integer,), data)
+    
+    def __init__(self, data):
+        """
+        CHANNEL_JOIN packet (channel_id of <ChannelID>, channel_name of <String>, channel_status of <Integer>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_CHANNEL_JOIN.type, map(type, self), data)
+        
+        self.channel_id = self[0]
+        self.channel_name = self[1]
+        self.channel_status = self[2]
+
+
+class AOSP_CHANNEL_LEAVE(_ServerPacket):
+    
+    type = 61
+    
+    def __new__(Class, data):
+        """
+        Constructor of CHANNEL_LEAVE packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_CHANNEL_LEAVE.type, (ChannelID,), data)
+    
+    def __init__(self, data):
+        """
+        CHANNEL_LEAVE packet (channel_id of <ChannelID>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_CHANNEL_LEAVE.type, map(type, self), data)
+        
+        self.channel_id = self[0]
+
+
+class AOSP_CHANNEL_MESSAGE(_ServerPacket):
+    
+    type = 65
+    
+    def __new__(Class, data):
+        """
+        Constructor of CHANNEL_MESSAGE packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_CHANNEL_MESSAGE.type, (ChannelID, Integer, String, String,), data)
+    
+    def __init__(self, data):
+        """
+        CHANNEL_MESSAGE packet (channel_id of <ChannelID>, character_id of <Integer>, message of <String>, blob of <String>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_CHANNEL_MESSAGE.type, map(type, self), data)
+        
+        self.channel_id = self[0]
+        self.character_id = self[1]
+        self.message = self[2]
+        self.blob  = self[3]
+
+
+class AOSP_PONG(_ServerPacket):
+    
+    type = 100
+    
+    def __new__(Class, data):
+        """
+        Constructor of PONG packet.
+        """
+        
+        return _ServerPacket.__new__(Class, AOSP_PONG.type, (String,), data)
+    
+    def __init__(self, data):
+        """
+        PONG packet (message of <String>).
+        """
+        
+        _ServerPacket.__init__(self, AOSP_PONG.type, map(type, self), data)
+        
+        self.message = self[0]
 
 
 
@@ -511,23 +609,23 @@ class AOCP_LOGIN_REQUEST(_ClientPacket):
     
     type = 2
     
-    def __new__(Class, version, username, login_key):
+    def __new__(Class, username, login_key, version = 0):
         """
         Constructor of LOGIN_REQUEST packet.
         """
         
         return _ClientPacket.__new__(Class, AOCP_LOGIN_REQUEST.type, (Integer(version), String(username), String(login_key),))
     
-    def __init__(self, version, username, login_key):
+    def __init__(self, username, login_key, version = 0):
         """
-        LOGIN_REQUEST packet (version of <Integer>, username of <String>, login_key of <String>).
+        LOGIN_REQUEST packet (username of <String>, login_key of <String>, version of <Integer>).
         """
         
         _ClientPacket.__init__(self, AOCP_LOGIN_REQUEST.type, self)
         
-        self.version = version
-        self.username = username
-        self.login_key = login_key
+        self.version = self[0]
+        self.username = self[1]
+        self.login_key = self[2]
 
 
 class AOCP_LOGIN_SELECT_CHARACTER(_ClientPacket):
@@ -547,178 +645,284 @@ class AOCP_LOGIN_SELECT_CHARACTER(_ClientPacket):
         """
         
         _ClientPacket.__init__(self, AOCP_LOGIN_SELECT_CHARACTER.type, self)
+        
+        self.character_id = self[0]
 
 
-#class AOCP_CHARACTER_LOOKUP_REQUEST(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: CHARACTER_LOOKUP_REQUEST packet.
-#    """
-#    
-#    type = 21
-#    
-#    def __init__(self, char_name):
-#        ClientPacket.__init__(self, String(char_name))
-#
-#
-#class AOCP_PRIVATE_MESSAGE(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: PRIVATE_MESSAGE packet.
-#    """
-#    
-#    type = 30
-#    
-#    def __init__(self, char_id, text, blob):
-#        ClientPacket.__init__(self, Integer(char_id), String(text), String(blob))
-#
-#
-#class AOCP_FRIEND_UPDATE(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: FRIEND_UPDATE packet.
-#    
-#    flags = 0 means temporary, anything else means permanent.
-#    """
-#    
-#    type = 40
-#    
-#    def __init__(self, char_id, flags):
-#        ClientPacket.__init__(self, Integer(char_id), String(flags))
-#
-#
-#class AOCP_FRIEND_REMOVE(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: FRIEND_REMOVE packet.
-#    """
-#    
-#    type = 41
-#    
-#    def __init__(self, char_id):
-#        ClientPacket.__init__(self, Integer(char_id))
-#
-#
-#class AOCP_ONLINE_STATUS(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: ONLINE_STATUS packet.
-#    """
-#    
-#    type = 42
-#    
-#    def __init__(self, online):
-#        ClientPacket.__init__(self, Integer(online))
-#
-#
-#class AOCP_PRIVATE_CHANNEL_ACCEPT(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: PRIVATE_CHANNEL_ACCEPT packet.
-#    """
-#    
-#    type = 52
-#    
-#    def __init__(self, owner_char_id):
-#        ClientPacket.__init__(self, Integer(owner_char_id))
-#
-#
-#class AOCP_PRIVATE_CHANNEL_LEAVE(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: PRIVATE_CHANNEL_LEAVE packet.
-#    """
-#    
-#    type = 53
-#    
-#    def __init__(self, owner_char_id):
-#        ClientPacket.__init__(self, Integer(owner_char_id))
-#
-#
-#class AOCP_PRIVATE_CHANNEL_KICK_ALL(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: PRIVATE_CHANNEL_KICK_ALL packet.
-#    """
-#    
-#    type = 54
-#    
-#    def __init__(self):
-#        ClientPacket.__init__(self)
-#
-#
-#class AOCP_GROUP_DATASET(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: GROUP_DATASET packet.
-#    """
-#    
-#    type = 64
-#    
-#    def __init__(self, group_id, mute):
-#        ClientPacket.__init__(self, GroupID(group_id), Integer(mute), String(""))
-#        
-#        # TODO: ...
-#
-#
-#class AOCP_GROUP_MESSAGE(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: GROUP_MESSAGE packet.
-#    """
-#    
-#    type = 65
-#    
-#    def __init__(self, group_id, text, blob):
-#        ClientPacket.__init__(self, GroupID(group_id), String(text), String(blob))
-#
-#
-#class AOCP_GROUP_CLIMODE(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: GROUP_CLIMODE packet.
-#    """
-#    
-#    type = 66
-#    
-#    def __init__(self, group_id):
-#        ClientPacket.__init__(self, GroupID(group_id), Integer(0), Integer(0), Integer(0), Integer(0))
-#        
-#        # TODO: ...
-#
-#
-#class AOCP_CLIMODE_GET(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: CLIMODE_GET packet.
-#    """
-#    
-#    type = 70
-#    
-#    def __init__(self, group_id):
-#        ClientPacket.__init__(self, Integer(0), GroupID(group_id))
-#        
-#        # TODO: ...
-#
-#
-#class AOCP_CLIMODE_SET(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: CLIMODE_SET packet.
-#    """
-#    
-#    type = 71
-#    
-#    def __init__(self):
-#        ClientPacket.__init__(self, Integer(0), Integer(0), Integer(0), Integer(0))
-#        
-#        # TODO: ...
-#
-#
-#class AOCP_PING(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: PING packet.
-#    """
-#    
-#    type = 100
-#    
-#    def __init__(self, string):
-#        ClientPacket.__init__(self, String(string))
-#
-#
-#class AOCP_CHAT_COMMAND(ClientPacket):
-#    """
-#    Anarchy Online chat protocol: CHAT_COMMAND packet.
-#    """
-#    
-#    type = 120
-#    
-#    def __init__(self, command, value):
-#        ClientPacket.__init__(self, String(command), String(value))
+class AOCP_CHARACTER_LOOKUP_REQUEST(_ClientPacket):
+    
+    type = 21
+    
+    def __new__(Class, character_name):
+        """
+        Constructor of LOGIN_CHARACTER_LOOKUP_REQUEST packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_CHARACTER_LOOKUP_REQUEST.type, (String(character_name),))
+    
+    def __init__(self, character_name):
+        """
+        CHARACTER_LOOKUP_REQUEST packet (character_name of <String>).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_CHARACTER_LOOKUP_REQUEST.type, self)
+        
+        self.character_name = self[0]
+
+
+class AOCP_PRIVATE_MESSAGE(_ClientPacket):
+    
+    type = 30
+    
+    def __new__(Class, character_id, message, blob):
+        """
+        Constructor of PRIVATE_MESSAGE packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_PRIVATE_MESSAGE.type, (Integer(character_id), String(message), String(blob),))
+    
+    def __init__(self, character_id, message, blob):
+        """
+        PRIVATE_MESSAGE packet (character_id of <Integer>, message of <String>, blob of <String>).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_PRIVATE_MESSAGE.type, self)
+        
+        self.character_id = self[0]
+        self.message = self[1]
+        self.blob = self[2]
+
+
+class AOCP_FRIEND_UPDATE(_ClientPacket):
+    
+    type = 40
+    
+    def __new__(Class, character_id, flags = 0):
+        """
+        Constructor of FRIEND_UPDATE packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_FRIEND_UPDATE.type, (Integer(character_id), Integer(flags),))
+    
+    def __init__(self, character_id, flags = 0):
+        """
+        FRIEND_UPDATE packet (character_id of <Integer>, flags of <Integer>).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_FRIEND_UPDATE.type, self)
+        
+        self.character_id = self[0]
+        self.flags = self[1]
+
+
+class AOCP_FRIEND_REMOVE(_ClientPacket):
+    
+    type = 41
+    
+    def __new__(Class, character_id):
+        """
+        Constructor of FRIEND_REMOVE packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_FRIEND_REMOVE.type, (Integer(character_id),))
+    
+    def __init__(self, character_id):
+        """
+        FRIEND_REMOVE packet (character_id of <Integer>).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_FRIEND_REMOVE.type, self)
+        
+        self.character_id = self[0]
+
+
+class AOCP_PRIVATE_CHANNEL_INVITE(_ClientPacket):
+    
+    type = 50
+    
+    def __new__(Class, character_id):
+        """
+        Constructor of PRIVATE_CHANNEL_INVITE packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_PRIVATE_CHANNEL_INVITE.type, (Integer(character_id),))
+    
+    def __init__(self, character_id):
+        """
+        PRIVATE_CHANNEL_INVITE packet (character_id of <Integer>).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_PRIVATE_CHANNEL_INVITE.type, self)
+        
+        self.character_id = self[0]
+
+
+class AOCP_PRIVATE_CHANNEL_KICK(_ClientPacket):
+    
+    type = 51
+    
+    def __new__(Class, character_id):
+        """
+        Constructor of PRIVATE_CHANNEL_KICK packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_PRIVATE_CHANNEL_KICK.type, (Integer(character_id),))
+    
+    def __init__(self, character_id):
+        """
+        PRIVATE_CHANNEL_KICK packet (character_id of <Integer>).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_PRIVATE_CHANNEL_KICK.type, self)
+        
+        self.character_id = self[0]
+
+
+class AOCP_PRIVATE_CHANNEL_JOIN(_ClientPacket):
+    
+    type = 52
+    
+    def __new__(Class, owner_character_id):
+        """
+        Constructor of PRIVATE_CHANNEL_JOIN packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_PRIVATE_CHANNEL_JOIN.type, (Integer(owner_character_id),))
+    
+    def __init__(self, owner_character_id):
+        """
+        PRIVATE_CHANNEL_JOIN packet (owner_character_id of <Integer>).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_PRIVATE_CHANNEL_JOIN.type, self)
+        
+        self.owner_character_id = self[0]
+
+
+class AOCP_PRIVATE_CHANNEL_LEAVE(_ClientPacket):
+    
+    type = 53
+    
+    def __new__(Class, owner_character_id):
+        """
+        Constructor of PRIVATE_CHANNEL_LEAVE packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_PRIVATE_CHANNEL_LEAVE.type, (Integer(owner_character_id),))
+    
+    def __init__(self, owner_character_id):
+        """
+        PRIVATE_CHANNEL_LEAVE packet (owner_character_id of <Integer>).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_PRIVATE_CHANNEL_LEAVE.type, self)
+        
+        self.owner_character_id = self[0]
+
+
+class AOCP_PRIVATE_CHANNEL_KICKALL(_ClientPacket):
+    
+    type = 54
+    
+    def __new__(Class):
+        """
+        Constructor of PRIVATE_CHANNEL_KICKALL packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_PRIVATE_CHANNEL_KICKALL.type, ())
+    
+    def __init__(self):
+        """
+        PRIVATE_CHANNEL_KICKALL packet (no data).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_PRIVATE_CHANNEL_KICKALL.type, self)
+
+
+class AOCP_PRIVATE_CHANNEL_MESSAGE(_ClientPacket):
+    
+    type = 57
+    
+    def __new__(Class, character_id, message, blob):
+        """
+        Constructor of PRIVATE_CHANNEL_MESSAGE packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_PRIVATE_CHANNEL_MESSAGE.type, (Integer(character_id), String(message), String(blob),))
+    
+    def __init__(self, character_id, message, blob):
+        """
+        PRIVATE_CHANNEL_MESSAGE packet (character_id of <Integer>, message of <String>, blob of <String>).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_PRIVATE_CHANNEL_MESSAGE.type, self)
+        
+        self.character_id = self[0]
+        self.message = self[1]
+        self.blob = self[2]
+
+
+class AOCP_CHANNEL_MESSAGE(_ClientPacket):
+    
+    type = 65
+    
+    def __new__(Class, channel_id, character_id, message, blob):
+        """
+        Constructor of CHANNEL_MESSAGE packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_CHANNEL_MESSAGE.type, (ChannelID(channel_id), Integer(character_id), String(message), String(blob),))
+    
+    def __init__(self, channel_id, character_id, message, blob):
+        """
+        CHANNEL_MESSAGE packet (channel_id of <ChannelID>, character_id of <Integer>, message of <String>, blob of <String>).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_CHANNEL_MESSAGE.type, self)
+        
+        self.channel_id = self[0]
+        self.character_id = self[1]
+        self.message = self[2]
+        self.blob = self[3]
+
+
+class AOCP_PING(_ClientPacket):
+    
+    type = 100
+    
+    def __new__(Class, message):
+        """
+        Constructor of PING packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_PING.type, (String(message),))
+    
+    def __init__(self, message):
+        """
+        PING packet (message of <String>).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_PING.type, self)
+        
+        self.message = self[0]
+
+
+class AOCP_CHAT_COMMAND(_ClientPacket):
+    
+    type = 120
+    
+    def __new__(Class, command):
+        """
+        Constructor of CHAT_COMMAND packet.
+        """
+        
+        return _ClientPacket.__new__(Class, AOCP_CHAT_COMMAND.type, (String(command),))
+    
+    def __init__(self, command):
+        """
+        CHAT_COMMAND packet (command of <String>).
+        """
+        
+        _ClientPacket.__init__(self, AOCP_CHAT_COMMAND.type, self)
+        
+        self.command = self[0]

@@ -6,7 +6,6 @@ Python implementation of Anarchy Online chat protocol.
 """
 
 
-
 import socket
 import struct
 
@@ -37,7 +36,7 @@ class Chat(object):
     Anarchy Online chat protocol implementation.
     """
     
-    def __init__(self, username, password, dimension, character = None, timeout = 10):
+    def __init__(self, username, password, dimension, character_id = 0, timeout = 10):
         # Initialize connection
         try:
             self.socket = socket.create_connection((dimension.host, dimension.port,), timeout)
@@ -54,13 +53,13 @@ class Chat(object):
         # Authenticate
         try:
             self.character  = None
-            self.characters = self.send_packet(AOCP_LOGIN_REQUEST(0, username, login_key), AOSP_LOGIN_CHARACTER_LIST, AOSP_LOGIN_ERROR).characters
+            self.characters = self.send_packet(AOCP_LOGIN_REQUEST(username, login_key), AOSP_LOGIN_CHARACTER_LIST, AOSP_LOGIN_ERROR).characters
         except UnexpectedPacket, (type, packet):
             raise ChatError(packet.message)
         
         # Login
-        if character:
-            self.login(character)
+        if character_id:
+            self.login(character_id)
     
     def __read_socket(self, bytes):
         data = ""
@@ -137,18 +136,21 @@ class Chat(object):
         if expect:
             return self.wait_packet(expect, error)
     
-    def login(self, character):
+    def login(self, character_id):
         """
         Login to chat.
         """
         
         # Lookup character
-        if character.id not in map(lambda char: char.id, self.characters):
+        for character in self.characters:
+            if character.id == character_id:
+                break
+        else:
             raise ChatError("no valid characters to login.")
         
         # Login with selected character
         try:
-            self.send_packet(AOCP_LOGIN_SELECT_CHARACTER(character.id), AOSP_LOGIN_OK, AOSP_LOGIN_ERROR)
+            self.send_packet(AOCP_LOGIN_SELECT_CHARACTER(character_id), AOSP_LOGIN_OK, AOSP_LOGIN_ERROR)
         except UnexpectedPacket, (type, packet):
             raise ChatError(packet.message)
         
