@@ -2,7 +2,8 @@
 
 
 """
-Anarchy Online chat protocol: characters.
+Python implementation of Anarchy Online chat protocol.
+Characters.
 """
 
 

@@ -2,7 +2,8 @@
 
 
 """
-Anarchy Online chat protocol: data types.
+Python implementation of Anarchy Online chat protocol.
+Data types.
 """
 
 
@@ -10,14 +11,14 @@ import struct
 
 
 class Integer(long):
+    """
+    Unsigned 32-bit integer.
+    """
+    
+    def __new__(Class, x = 0L, base = 10):
+        return long.__new__(Class, str(x), base)
     
     def __init__(self, x = 0L, base = 10):
-        """
-        Unsigned integer.
-        """
-        
-        long.__init__(self, x, base)
-        
         if self > 0xFFFFFFFFL:
             raise ValueError("out of range")
     
@@ -41,14 +42,14 @@ class Integer(long):
 
 
 class String(str):
+    """
+    16-bit length string.
+    """
+    
+    def __new__(Class, x = ""):
+        return str.__new__(Class, x or "")
     
     def __init__(self, x = ""):
-        """
-        String.
-        """
-        
-        str.__init__(self, x)
-        
         if len(self) > 0xFFFF:
             raise ValueError("too long string")
     
@@ -74,14 +75,14 @@ class String(str):
 
 
 class ChannelID(long):
+    """
+    Channel ID.
+    """
+    
+    def __new__(Class, x = 0L, base = 10):
+        return long.__new__(Class, str(x), base)
     
     def __init__(self, x = 0L, base = 10):
-        """
-        Channel ID.
-        """
-        
-        long.__init__(self, x, base)
-        
         if self > 0xFFFFFFFFFFL:
             raise ValueError("out of range")
     
@@ -106,20 +107,15 @@ class ChannelID(long):
         return Class((a << 32) + b), data[5:]
 
 
-class _Tuple(tuple):
+class Tuple(tuple):
+    """
+    Tuple of <Type>s.
+    """
     
     def __new__(Class, Type, sequence = ()):
-        """
-        Constructor of tuple of <Type>s.
-        """
-        
         return tuple.__new__(Class, map(Type, sequence))
     
     def __init__(self, Type, sequence = ()):
-        """
-        Tuple of <Type>s.
-        """
-        
         if len(self) > 0xFFFF:
             raise ValueError("too long sequence")
     
@@ -150,21 +146,13 @@ class _Tuple(tuple):
         return items, data
 
 
-class IntegerTuple(_Tuple):
+class TupleOfIntegers(Tuple):
+    """
+    Tuple of <Integer>s.
+    """
     
     def __new__(Class, sequence = ()):
-        """
-        Constructor of tuple of <Integer>s.
-        """
-        
-        return _Tuple.__new__(Class, Integer, sequence)
-    
-    def __init__(self, sequence = ()):
-        """
-        Tuple of <Integer>s.
-        """
-        
-        _Tuple.__init__(self, Integer, sequence)
+        return Tuple.__new__(Class, Integer, sequence)
     
     @classmethod
     def unpack(Class, data):
@@ -172,26 +160,18 @@ class IntegerTuple(_Tuple):
         Unpack from binary data.
         """
         
-        items, data = _Tuple.unpack(Integer, data)
+        items, data = Tuple.unpack(Integer, data)
         
         return Class(items), data
 
 
-class StringTuple(_Tuple):
+class TupleOfStrings(Tuple):
+    """
+    Tuple of <String>s.
+    """
     
     def __new__(Class, sequence = ()):
-        """
-        Constructor of tuple of <String>s.
-        """
-        
-        return _Tuple.__new__(Class, String, sequence)
-    
-    def __init__(self, sequence = ()):
-        """
-        Tuple of <String>s.
-        """
-        
-        _Tuple.__init__(self, String, sequence)
+        return Tuple.__new__(Class, String, sequence)
     
     @classmethod
     def unpack(Class, data):
@@ -199,6 +179,6 @@ class StringTuple(_Tuple):
         Unpack from binary data.
         """
         
-        items, data = _Tuple.unpack(String, data)
+        items, data = Tuple.unpack(String, data)
         
         return Class(items), data
