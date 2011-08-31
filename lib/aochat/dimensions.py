@@ -20,7 +20,7 @@ class Dimension(object):
         self.port = port
     
     def __repr__(self):
-        return "<Dimension '%s' at %s:%d>" % (self.name, self.host, self.port)
+        return "<Dimension '%s' at '%s:%d'>" % (self.name, self.host, self.port)
 
 
 DIMENSIONS = {

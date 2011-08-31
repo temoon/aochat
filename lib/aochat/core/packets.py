@@ -321,12 +321,13 @@ class AOSP_CHAT_NOTICE(ServerPacket):
     def __init__(self, data):
         self.character_id = self[0]
         self.unknown = self[1]
+        self.categoty = 20000
         self.instance = self[2]
         self.message = self[3]
         
         # Extended message
         self.args = []
-        self.mask = get_text(20000, self.instance)
+        self.mask = get_text(self.categoty, self.instance)
         
         data = self.message
         
@@ -525,6 +526,8 @@ class AOSP_CHANNEL_MESSAGE(ServerPacket):
         self.character_id = self[1]
         self.message = self[2]
         self.unknown = self[3]
+        self.category = None
+        self.instance = None
         
         # Extended message
         if self.character_id == 0L and self.message.startswith("~&"):
@@ -539,8 +542,8 @@ class AOSP_CHANNEL_MESSAGE(ServerPacket):
             # Parse arguments
             data = self.message[2:-1]
             
-            category, data = b85g(data)
-            instance, data = b85g(data)
+            self.category, data = b85g(data)
+            self.instance, data = b85g(data)
             
             self.args = []
             self.mask = get_text(category, instance)
