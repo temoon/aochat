@@ -261,8 +261,6 @@ class Chat(object):
             except KeyError:
                 raise UnexpectedPacket(packet_type, data)
         
-        print "Got packet %s" % repr(packet)
-        
         return packet
     
     def send_packet(self, packet, Expect = None, Error = None):
@@ -275,8 +273,6 @@ class Chat(object):
         
         # Send data to server
         self.__write_socket(data)
-        
-        print "Sent packet %s" % repr(packet)
         
         if Expect:
             return self.wait_packet(Expect, Error)
@@ -317,9 +313,9 @@ class Chat(object):
         Send ping to chat server.
         """
         
-        self.send_packet(AOCP_PING(), AOSP_PING)
+        self.send_packet(AOCP_PING())
     
-    def start(self, events = {}, ping_interval = 60000):
+    def start(self, callback, ping_interval = 60000):
         """
         Start chat.
         """
@@ -329,26 +325,23 @@ class Chat(object):
         
         while True:
             try:
-                io_events = poll.poll(ping_interval)
+                events = poll.poll(ping_interval)
                 
-                for socket, io_event in io_events:
-                    if io_event == select.POLLIN:
+                for socket, event in events:
+                    if event == select.POLLIN:
                         try:
                             packet = self.wait_packet()
                         except UnexpectedPacket, (type, data):
                             print "Unexpected packet %d: %s" % (type, repr(data))
                             continue
                         
-                        if packet.type in events:
-                            events[packet.type](self, packet)
-                    elif io_event == select.POLLHUP:
-                        print "hup"
+                        callback(self, packet)
+                    elif event == select.POLLHUP:
                         return
-                    elif io_event == select.POLLERR:
-                        print "err"
+                    elif event == select.POLLERR:
                         return
                 
-                if not io_events:
+                if not events:
                     self.ping()
             except KeyboardInterrupt:
                 break

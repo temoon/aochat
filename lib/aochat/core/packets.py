@@ -325,8 +325,9 @@ class AOSP_CHAT_NOTICE(ServerPacket):
         self.message = self[3]
         
         # Extended message
-        args = []
-        mask = get_text(20000, self.instance)
+        self.args = []
+        self.mask = get_text(20000, self.instance)
+        
         data = self.message
         
         while data:
@@ -335,12 +336,9 @@ class AOSP_CHAT_NOTICE(ServerPacket):
             if arg_type == "S":
                 string, data = String.unpack(data)
                 args.append(string)
-            elif arg_type in "I":
+            elif arg_type == "I":
                 number, data = Integer.unpack(data)
                 args.append(number)
-        
-        # Make string
-        self.message = String(mask % tuple(args))
 
 
 class AOSP_FRIEND_UPDATE(ServerPacket):
@@ -544,15 +542,15 @@ class AOSP_CHANNEL_MESSAGE(ServerPacket):
             category, data = b85g(data)
             instance, data = b85g(data)
             
-            args = []
-            mask = get_text(category, instance)
+            self.args = []
+            self.mask = get_text(category, instance)
             
             while data:
                 arg_type, data = data[0], data[1:]
                 
                 if arg_type == "s":
                     length = ord(data[0])
-                    string, data = data[1:length + 1], data[length + 1:]
+                    string, data = data[1:length], data[length:]
                     
                     args.append(string)
                 elif arg_type in "iu":
@@ -564,9 +562,6 @@ class AOSP_CHANNEL_MESSAGE(ServerPacket):
                     instance, data = b85g(data)
                     
                     args.append(get_text(category, instance))
-            
-            # Make string
-            self.message = String(mask % tuple(args))
 
 
 class AOSP_PING(ServerPacket):
