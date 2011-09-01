@@ -13,9 +13,7 @@ AOFL_* - Flags
 
 import struct
 
-from aochat.core.types import Integer, String, ChannelID, TupleOfIntegers, TupleOfStrings
-from aochat.data import get_text
-from aochat.characters import Character
+from aochat.types import *
 
 
 ### FLAGS ######################################################################
@@ -321,14 +319,12 @@ class AOSP_CHAT_NOTICE(ServerPacket):
     def __init__(self, data):
         self.character_id = self[0]
         self.unknown = self[1]
-        self.categoty = 20000
+        self.category = 20000
         self.instance = self[2]
         self.message = self[3]
+        self.args = []
         
         # Extended message
-        self.args = []
-        self.mask = get_text(self.categoty, self.instance)
-        
         data = self.message
         
         while data:
@@ -528,6 +524,7 @@ class AOSP_CHANNEL_MESSAGE(ServerPacket):
         self.unknown = self[3]
         self.category = None
         self.instance = None
+        self.args = []
         
         # Extended message
         if self.character_id == 0L and self.message.startswith("~&"):
@@ -545,9 +542,6 @@ class AOSP_CHANNEL_MESSAGE(ServerPacket):
             self.category, data = b85g(data)
             self.instance, data = b85g(data)
             
-            self.args = []
-            self.mask = get_text(self.category, self.instance)
-            
             while data:
                 arg_type, data = data[0], data[1:]
                 
@@ -564,7 +558,7 @@ class AOSP_CHANNEL_MESSAGE(ServerPacket):
                     category, data = b85g(data)
                     instance, data = b85g(data)
                     
-                    self.args.append(get_text(category, instance))
+                    self.args.append((category, instance,))
 
 
 class AOSP_PING(ServerPacket):
@@ -866,51 +860,3 @@ class AOCP_CHAT_COMMAND(ClientPacket):
     def __init__(self, command, unknown = AOFL_CHAT_COMMAND):
         self.command = self[0]
         self.unknown = self[1]
-
-
-################################################################################
-
-
-SERVER_PACKETS = {
-    AOSP_SEED.type:                            AOSP_SEED,
-    AOSP_LOGIN_OK.type:                        AOSP_LOGIN_OK,
-    AOSP_AUTH_ERROR.type:                      AOSP_AUTH_ERROR,
-    AOSP_CHARACTERS_LIST.type:                 AOSP_CHARACTERS_LIST,
-    AOSP_CHARACTER_NAME.type:                  AOSP_CHARACTER_NAME,
-    AOSP_CHARACTER_LOOKUP.type:                AOSP_CHARACTER_LOOKUP,
-    AOSP_PRIVATE_MESSAGE.type:                 AOSP_PRIVATE_MESSAGE,
-    AOSP_VICINITY_MESSAGE.type:                AOSP_VICINITY_MESSAGE,
-    AOSP_BROADCAST_MESSAGE.type:               AOSP_BROADCAST_MESSAGE,
-    AOSP_SYSTEM_MESSAGE.type:                  AOSP_SYSTEM_MESSAGE,
-    AOSP_CHAT_NOTICE.type:                     AOSP_CHAT_NOTICE,
-    AOSP_FRIEND_UPDATE.type:                   AOSP_FRIEND_UPDATE,
-    AOSP_FRIEND_REMOVE.type:                   AOSP_FRIEND_REMOVE,
-    AOSP_PRIVATE_CHANNEL_INVITE.type:          AOSP_PRIVATE_CHANNEL_INVITE,
-    AOSP_PRIVATE_CHANNEL_KICK.type:            AOSP_PRIVATE_CHANNEL_KICK,
-    AOSP_PRIVATE_CHANNEL_CHARACTER_JOIN.type:  AOSP_PRIVATE_CHANNEL_CHARACTER_JOIN,
-    AOSP_PRIVATE_CHANNEL_CHARACTER_LEAVE.type: AOSP_PRIVATE_CHANNEL_CHARACTER_LEAVE,
-    AOSP_PRIVATE_CHANNEL_MESSAGE.type:         AOSP_PRIVATE_CHANNEL_MESSAGE,
-    AOSP_CHANNEL_JOIN.type:                    AOSP_CHANNEL_JOIN,
-    AOSP_CHANNEL_LEAVE.type:                   AOSP_CHANNEL_LEAVE,
-    AOSP_CHANNEL_MESSAGE.type:                 AOSP_CHANNEL_MESSAGE,
-    AOSP_PING.type:                            AOSP_PING,
-}
-
-CLIENT_PACKETS = {
-    AOCP_SEED.type:                            AOCP_SEED,
-    AOCP_AUTH.type:                            AOCP_AUTH,
-    AOCP_LOGIN.type:                           AOCP_LOGIN,
-    AOCP_CHARACTER_LOOKUP.type:                AOCP_CHARACTER_LOOKUP,
-    AOCP_PRIVATE_MESSAGE.type:                 AOCP_PRIVATE_MESSAGE,
-    AOCP_FRIEND_UPDATE.type:                   AOCP_FRIEND_UPDATE,
-    AOCP_FRIEND_REMOVE.type:                   AOCP_FRIEND_REMOVE,
-    AOCP_PRIVATE_CHANNEL_INVITE.type:          AOCP_PRIVATE_CHANNEL_INVITE,
-    AOCP_PRIVATE_CHANNEL_KICK.type:            AOCP_PRIVATE_CHANNEL_KICK,
-    AOCP_PRIVATE_CHANNEL_JOIN.type:            AOCP_PRIVATE_CHANNEL_JOIN,
-    AOCP_PRIVATE_CHANNEL_LEAVE.type:           AOCP_PRIVATE_CHANNEL_LEAVE,
-    #AOCP_PRIVATE_CHANNEL_KICKALL.type:         AOCP_PRIVATE_CHANNEL_KICKALL,
-    AOCP_PRIVATE_CHANNEL_MESSAGE.type:         AOCP_PRIVATE_CHANNEL_MESSAGE,
-    AOCP_CHANNEL_MESSAGE.type:                 AOCP_CHANNEL_MESSAGE,
-    AOCP_PING.type:                            AOCP_PING,
-    AOCP_CHAT_COMMAND.type:                    AOCP_CHAT_COMMAND,
-}

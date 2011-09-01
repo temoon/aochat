@@ -182,3 +182,18 @@ class TupleOfStrings(Tuple):
         items, data = Tuple.unpack(String, data)
         
         return Class(items), data
+
+
+class Character(object):
+    """
+    Game character.
+    """
+    
+    def __init__(self, id, name, level, online):
+        self.id = id
+        self.name = name
+        self.level = level
+        self.online = online
+    
+    def __repr__(self):
+        return "<Character [%s] %s (%d), level %d>" % ("Online" if self.online else "Offline", self.name, self.id, self.level,)

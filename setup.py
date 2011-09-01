@@ -12,7 +12,7 @@ from distutils.core import setup
 
 setup(
     name         = "aochat",
-    version      = "0.1.1.9a",
+    version      = "0.2.0.10a",
     description  = "Python implementation of Anarchy Online chat protocol.",
     author       = "Tema Novikov",
     author_email = "temoon@temoon.pp.ru",
@@ -20,22 +20,11 @@ setup(
     
     packages = (
         "aochat",
-        "aochat.core"
     ),
     
     package_dir = {
         "aochat": "lib/aochat",
-        "aochat.core": "lib/aochat/core",
     },
-    
-    scripts = (
-        "bin/aochat",
-    ),
-    
-    data_files = (
-        ("/usr/local/etc", ("etc/aochat.conf",)),
-        ("/var/lib/aochat", ("data/texts.dat",)),
-    ),
     
     classifiers = (
         "Development Status :: 3 - Alpha",

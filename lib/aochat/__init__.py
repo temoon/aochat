@@ -11,76 +11,59 @@ import select
 import struct
 import random
 
-from aochat.core.packets import (
-    # Dictionaries
-    SERVER_PACKETS,
-    CLIENT_PACKETS,
-    
-    # Auth flags
-    AOFL_AUTH,
-    
-    # Character lookup result flags
-    AOFL_CHARACTER_UNKNOWN,
-    
-    # Private message flags
-    AOFL_PRIVATE_MESSAGE,
-    
-    # Broadcast message flags
-    AOFL_BROADCAST_NOTICE,
-    AOFL_BROADCAST_ALL,
-    AOFL_BROADCAST_PET,
-    
-    # Vicinity message flags
-    AOFL_VICINITY_SAY,
-    AOFL_VICINITY_WHISPER,
-    AOFL_VICINITY_SHOUT,
-    AOFL_VICINITY_SELF,
-    
-    # Friend status flags
-    AOFL_FRIEND_RECENT,
-    AOFL_FRIEND_BUDDY,
-    
-    # Private channel message
-    AOFL_PRIVATE_CHANNEL_MESSAGE,
-    
-    # Channel message
-    AOFL_CHANNEL_MESSAGE,
-    
-    # Ping flags
-    AOFL_PING,
-    
-    # Chat command flags
-    AOFL_CHAT_COMMAND,
-    
-    # Server to client packets
-    AOSP_SEED,                             AOSP_LOGIN_OK,
-    AOSP_AUTH_ERROR,                       AOSP_CHARACTERS_LIST,
-    AOSP_CHARACTER_NAME,                   AOSP_CHARACTER_LOOKUP,
-    AOSP_PRIVATE_MESSAGE,                  AOSP_VICINITY_MESSAGE,
-    AOSP_BROADCAST_MESSAGE,                AOSP_SYSTEM_MESSAGE,
-    AOSP_CHAT_NOTICE,                      AOSP_FRIEND_UPDATE,
-    AOSP_FRIEND_REMOVE,                    AOSP_PRIVATE_CHANNEL_INVITE,
-    AOSP_PRIVATE_CHANNEL_KICK,             AOSP_PRIVATE_CHANNEL_CHARACTER_JOIN,
-    AOSP_PRIVATE_CHANNEL_CHARACTER_LEAVE,  AOSP_PRIVATE_CHANNEL_MESSAGE,
-    AOSP_CHANNEL_JOIN,                     AOSP_CHANNEL_LEAVE,
-    AOSP_CHANNEL_MESSAGE,                  AOSP_PING,
-    
-    # Client to server packets
-    AOCP_SEED,                             AOCP_AUTH,
-    AOCP_LOGIN,                            AOCP_CHARACTER_LOOKUP,
-    AOCP_PRIVATE_MESSAGE,                  AOCP_FRIEND_UPDATE,
-    AOCP_FRIEND_REMOVE,                    AOCP_PRIVATE_CHANNEL_INVITE,
-    AOCP_PRIVATE_CHANNEL_KICK,             AOCP_PRIVATE_CHANNEL_JOIN,
-    AOCP_PRIVATE_CHANNEL_LEAVE,            #AOCP_PRIVATE_CHANNEL_KICKALL,
-    AOCP_PRIVATE_CHANNEL_MESSAGE,          AOCP_CHANNEL_MESSAGE,
-    AOCP_PING,                             AOCP_CHAT_COMMAND,
-)
+from aochat.packets import *
+
+
+SERVER_PACKETS = {
+    AOSP_SEED.type:                            AOSP_SEED,
+    AOSP_LOGIN_OK.type:                        AOSP_LOGIN_OK,
+    AOSP_AUTH_ERROR.type:                      AOSP_AUTH_ERROR,
+    AOSP_CHARACTERS_LIST.type:                 AOSP_CHARACTERS_LIST,
+    AOSP_CHARACTER_NAME.type:                  AOSP_CHARACTER_NAME,
+    AOSP_CHARACTER_LOOKUP.type:                AOSP_CHARACTER_LOOKUP,
+    AOSP_PRIVATE_MESSAGE.type:                 AOSP_PRIVATE_MESSAGE,
+    AOSP_VICINITY_MESSAGE.type:                AOSP_VICINITY_MESSAGE,
+    AOSP_BROADCAST_MESSAGE.type:               AOSP_BROADCAST_MESSAGE,
+    AOSP_SYSTEM_MESSAGE.type:                  AOSP_SYSTEM_MESSAGE,
+    AOSP_CHAT_NOTICE.type:                     AOSP_CHAT_NOTICE,
+    AOSP_FRIEND_UPDATE.type:                   AOSP_FRIEND_UPDATE,
+    AOSP_FRIEND_REMOVE.type:                   AOSP_FRIEND_REMOVE,
+    AOSP_PRIVATE_CHANNEL_INVITE.type:          AOSP_PRIVATE_CHANNEL_INVITE,
+    AOSP_PRIVATE_CHANNEL_KICK.type:            AOSP_PRIVATE_CHANNEL_KICK,
+    AOSP_PRIVATE_CHANNEL_CHARACTER_JOIN.type:  AOSP_PRIVATE_CHANNEL_CHARACTER_JOIN,
+    AOSP_PRIVATE_CHANNEL_CHARACTER_LEAVE.type: AOSP_PRIVATE_CHANNEL_CHARACTER_LEAVE,
+    AOSP_PRIVATE_CHANNEL_MESSAGE.type:         AOSP_PRIVATE_CHANNEL_MESSAGE,
+    AOSP_CHANNEL_JOIN.type:                    AOSP_CHANNEL_JOIN,
+    AOSP_CHANNEL_LEAVE.type:                   AOSP_CHANNEL_LEAVE,
+    AOSP_CHANNEL_MESSAGE.type:                 AOSP_CHANNEL_MESSAGE,
+    AOSP_PING.type:                            AOSP_PING,
+}
+
+CLIENT_PACKETS = {
+    AOCP_SEED.type:                            AOCP_SEED,
+    AOCP_AUTH.type:                            AOCP_AUTH,
+    AOCP_LOGIN.type:                           AOCP_LOGIN,
+    AOCP_CHARACTER_LOOKUP.type:                AOCP_CHARACTER_LOOKUP,
+    AOCP_PRIVATE_MESSAGE.type:                 AOCP_PRIVATE_MESSAGE,
+    AOCP_FRIEND_UPDATE.type:                   AOCP_FRIEND_UPDATE,
+    AOCP_FRIEND_REMOVE.type:                   AOCP_FRIEND_REMOVE,
+    AOCP_PRIVATE_CHANNEL_INVITE.type:          AOCP_PRIVATE_CHANNEL_INVITE,
+    AOCP_PRIVATE_CHANNEL_KICK.type:            AOCP_PRIVATE_CHANNEL_KICK,
+    AOCP_PRIVATE_CHANNEL_JOIN.type:            AOCP_PRIVATE_CHANNEL_JOIN,
+    AOCP_PRIVATE_CHANNEL_LEAVE.type:           AOCP_PRIVATE_CHANNEL_LEAVE,
+#    AOCP_PRIVATE_CHANNEL_KICKALL.type:         AOCP_PRIVATE_CHANNEL_KICKALL,
+    AOCP_PRIVATE_CHANNEL_MESSAGE.type:         AOCP_PRIVATE_CHANNEL_MESSAGE,
+    AOCP_CHANNEL_MESSAGE.type:                 AOCP_CHANNEL_MESSAGE,
+    AOCP_PING.type:                            AOCP_PING,
+    AOCP_CHAT_COMMAND.type:                    AOCP_CHAT_COMMAND,
+}
+
 
 
 ### LOGIN KEY GENERATOR ########################################################
 
 
-def generate_login_key(server_key, username, password):
+def _generate_login_key(server_key, username, password):
     """
     Generate login key by server_key, username and password.
     """
@@ -185,7 +168,7 @@ class Chat(object):
         # Wait server key and generate login key
         try:
             server_key = self.wait_packet(AOSP_SEED).server_key
-            login_key  = generate_login_key(server_key, username, password)
+            login_key  = _generate_login_key(server_key, username, password)
         except UnexpectedPacket, (type, packet):
             raise ChatError("Invalid greeting packet: %s" % type)
         
