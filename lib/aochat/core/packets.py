@@ -546,7 +546,7 @@ class AOSP_CHANNEL_MESSAGE(ServerPacket):
             self.instance, data = b85g(data)
             
             self.args = []
-            self.mask = get_text(category, instance)
+            self.mask = get_text(self.category, self.instance)
             
             while data:
                 arg_type, data = data[0], data[1:]
@@ -555,16 +555,16 @@ class AOSP_CHANNEL_MESSAGE(ServerPacket):
                     length = ord(data[0])
                     string, data = data[1:length], data[length:]
                     
-                    args.append(string)
+                    self.args.append(string)
                 elif arg_type in "iu":
                     number, data = b85g(data)
                     
-                    args.append(number)
+                    self.args.append(number)
                 elif arg_type == "R":
                     category, data = b85g(data)
                     instance, data = b85g(data)
                     
-                    args.append(get_text(category, instance))
+                    self.args.append(get_text(category, instance))
 
 
 class AOSP_PING(ServerPacket):
