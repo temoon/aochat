@@ -2,7 +2,7 @@
 
 DIR=$(dirname ${0})
 
-echo -n "Installing Anarchy Online chat ..."
+echo -n "Installing ..."
 
 python ${DIR}/setup.py build >/dev/null &&
 python ${DIR}/setup.py install >/dev/null &&
