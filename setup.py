@@ -7,12 +7,12 @@ Setup for AO Chat.
 """
 
 
-from distutils.core import setup
+from setuptools import setup
 
 
 setup(
     name         = "aochat",
-    version      = "0.2.0.10a",
+    version      = "0.3.0.11a",
     description  = "Python implementation of Anarchy Online chat protocol.",
     author       = "Tema Novikov",
     author_email = "temoon@temoon.pp.ru",
