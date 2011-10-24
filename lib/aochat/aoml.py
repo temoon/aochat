@@ -18,8 +18,8 @@ def center(text):
 def right(text):
     return '<div align="right">%s</div>' % text
 
-def br():
-    return '<br>'
+def br(count = 1):
+    return '<br>' ** count
 
 def text(text, link):
     return '<a href="text://%s">%s</a>' % (text.replace('"', '\\"'), link,)
