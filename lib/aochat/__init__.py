@@ -163,7 +163,7 @@ class Chat(object):
         try:
             self.socket = socket.create_connection((host, port,), timeout)
         except socket.error, error:
-            raise ChatError("Socket error %d: %s" % tuple(error))
+            raise ChatError("Socket error %s: %s" % tuple(error))
         
         # Wait server key and generate login key
         try:
@@ -186,7 +186,7 @@ class Chat(object):
             try:
                 chunk = self.socket.recv(bytes)
             except socket.error, error:
-                raise ChatError("Socket error %d: %s" % tuple(error))
+                raise ChatError("Socket error %s: %s" % tuple(error))
             except socket.timeout:
                 raise ChatError("Connection timed out.")
             
@@ -205,7 +205,7 @@ class Chat(object):
             try:
                 sent = self.socket.send(data)
             except socket.error, error:
-                raise ChatError("Socket error %d: %s" % tuple(error))
+                raise ChatError("Socket error %s: %s" % tuple(error))
             except socket.timeout:
                 raise ChatError("Connection timed out.")
             
@@ -291,6 +291,41 @@ class Chat(object):
         # Unset current character
         self.character = None
     
+    def send_private_message(self, character_id, message):
+        """
+        Send private message to player.
+        """
+        
+        self.send_packet(AOCP_PRIVATE_MESSAGE(character_id, message, AOFL_PRIVATE_MESSAGE))
+    
+    def send_private_channel_message(self, channel_id, message):
+        """
+        Send message to private channel.
+        """
+        
+        self.send_packet(AOCP_PRIVATE_CHANNEL_MESSAGE(channel_id, message, AOFL_PRIVATE_CHANNEL_MESSAGE))
+    
+    def send_channel_message(self, channel_id, message):
+        """
+        Send message to channel.
+        """
+        
+        self.send_packet(AOCP_CHANNEL_MESSAGE(channel_id, message, AOFL_CHANNEL_MESSAGE))
+    
+    def private_channel_invite(self, character_id):
+        """
+        Invite to private channel.
+        """
+        
+        self.send_packet(AOCP_PRIVATE_CHANNEL_INVITE(character_id))
+    
+    def private_channel_kick(self, character_id):
+        """
+        Kick from private channel.
+        """
+        
+        self.send_packet(AOCP_PRIVATE_CHANNEL_KICK(character_id))
+    
     def ping(self, message = "PING"):
         """
         Send ping to chat server.
@@ -315,7 +350,7 @@ class Chat(object):
                         try:
                             packet = self.wait_packet()
                         except UnexpectedPacket, (type, data):
-                            print "Unexpected packet %d: %s" % (type, repr(data))
+                            print "Unexpected packet %s: %s" % (type, repr(data))
                             continue
                         
                         callback(self, packet)

@@ -332,10 +332,10 @@ class AOSP_CHAT_NOTICE(ServerPacket):
             
             if arg_type == "S":
                 string, data = String.unpack(data)
-                args.append(string)
+                self.args.append(string)
             elif arg_type == "I":
                 number, data = Integer.unpack(data)
-                args.append(number)
+                self.args.append(number)
 
 
 class AOSP_FRIEND_UPDATE(ServerPacket):
